@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>ConnectDialog.qml</file>
+        <file>NewTransmitDialog.qml</file>
+        <file>EditTransmitDialog.qml</file>
+        <file>D2Coding.ttf</file>
+    </qresource>
+</RCC>
