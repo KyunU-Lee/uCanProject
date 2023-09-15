@@ -18,6 +18,7 @@ int main(int argc, char *argv[])
 
     QQmlApplicationEngine engine;
     qmlRegisterType<TotalManager>("TotalManager", 1,0,"TotalManager");
+    qRegisterMetaType<CAN_ITEM>("CAN_ITEM");
 
 
 //    TotalManager tm;

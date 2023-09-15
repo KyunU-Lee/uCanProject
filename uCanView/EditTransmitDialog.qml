@@ -4,7 +4,7 @@ import QtQuick.Layouts 1.0
 import QtQuick.Dialogs 1.3
 
 Dialog{
-    id:newtransmitdialog
+    id:edittransmitdialog
     title: "Edit Transmit Message"
 
     property int dlcselect : dlccombo.currentValue;

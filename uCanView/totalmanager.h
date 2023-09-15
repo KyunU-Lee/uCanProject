@@ -20,7 +20,6 @@ class TotalManager : public QObject
     Q_PROPERTY(int dataLength READ getdataLength NOTIFY dataLengthChanged)
     Q_PROPERTY(int cycleTime READ getcycleTime NOTIFY cycleTimeChanged)
     Q_PROPERTY(QString comment READ getcomment NOTIFY commentChanged)
-    Q_PROPERTY(int idformat READ getidformat NOTIFY idformatChanged)
 
 //    Q_PROPERTY(bool portStatus READ getportStatus NOTIFY portStatusChanged())
 //_msgModel에 있는리스트에 접근해서 해당 index에 있는
@@ -30,7 +29,7 @@ public:
     explicit TotalManager(QObject *parent = nullptr);
     ~TotalManager();
 
-    Q_INVOKABLE void selectedTransmitRow(int tpos) { _selectedTransmitRow = tpos; qDebug() << tpos;}
+    Q_INVOKABLE void selectedTransmitRow(int tpos) { _selectedTransmitRow = tpos; /*qDebug() << tpos;*/}
     Q_INVOKABLE void selectedReciveRow(int rpos) { _selectedReciveRow = rpos;}
 
     //Transmit Works
@@ -59,13 +58,16 @@ public:
     Q_INVOKABLE void updateSerialPort() { return _portList.getPortList();}  //컴퓨터에 연결된 포트 리스트 최신화   // 좋은 코드는 아님.. 임시용
 
 //CAN Tap
-    Q_INVOKABLE void openPort(QString portname) ;
+    Q_INVOKABLE void openPort(QString portname);
     Q_INVOKABLE void closePort();
     Q_INVOKABLE void countReset();
 
 //우클릭 popup
     Q_INVOKABLE void changeIDFormatHexadecimal(int index) { _msgTransmitModel.changeIDFormatHexadecimal(index);}
     Q_INVOKABLE void changeIDFormatDecimal(int index) { _msgTransmitModel.changeIDFormatDecimal(index);}
+    Q_INVOKABLE void changeDATAFormatHexadecimal(int index) { _msgTransmitModel.changeDATAFormatHexadecimal(index);}
+    Q_INVOKABLE void changeDATAFormatDecimal(int index) { _msgTransmitModel.changeDATAFormatDecimal(index);}
+    Q_INVOKABLE void changeDATAFormatASCII(int index) { _msgTransmitModel.changeDATAFormatASCII(index);}
 
 // RecentFileModel
     Q_INVOKABLE void addRecentFileUrl(QString fileurl) { _recentFileModel.addFileUrl(fileurl);}
@@ -76,7 +78,8 @@ public:
     int getdataLength() { return _msgTransmitModel.getdataLength(_selectedTransmitRow);}
     int getcycleTime() { return _msgTransmitModel.getcycletime(_selectedTransmitRow); }
     QString getcomment(){ return _msgTransmitModel.getcomment(_selectedTransmitRow); }
-    int getidformat() { return _msgTransmitModel.getFormat(_selectedTransmitRow); }
+    Q_INVOKABLE int getidformat() { return _msgTransmitModel.getFormat(_selectedTransmitRow); }
+    Q_INVOKABLE int getDataFormat() { return _msgTransmitModel.getDataFormatStatus(_selectedTransmitRow);}
 
 // Q_PROPERTY
     SerialPortList* getportList() { return &_portList;} //컴퓨터에 연결된 시리얼 포트 리스트 MODEL Q_PROPERTY로 연결
@@ -111,8 +114,6 @@ signals:
     void dataLengthChanged();
     void cycleTimeChanged();
     void commentChanged();
-    void idformatChanged();
-
 
 private:
     CanMsgModel _msgTransmitModel;

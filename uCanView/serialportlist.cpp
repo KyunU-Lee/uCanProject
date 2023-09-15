@@ -4,6 +4,7 @@
 #include <QEventLoop>
 #include <QElapsedTimer>
 #include <QDateTime>
+#include <QCoreApplication>
 
 SerialPortList::SerialPortList(QObject *parent)
     : QAbstractListModel(parent)
@@ -48,7 +49,7 @@ void SerialPortList::getPortList()
 
 SerialWorker::SerialWorker(QThread *thread) : _thread(thread)
 {
-    qDebug() << "Serial worker Created in Thread ";
+    qDebug() << "Serial worker Created in Thread " << thread->currentThreadId();
     _working = false;
     _abort = false;
 }
@@ -62,7 +63,6 @@ SerialWorker::~SerialWorker()
         delete _serial;
         _serial =nullptr;
     }
-
     emit finished();
 }
 
@@ -75,7 +75,11 @@ bool SerialWorker::getPortStatus()
 void SerialWorker::doWork()
 {
     qDebug() << "Starting worker process in Thread " << thread()->currentThreadId();
-    setSerialPort(_portname);
+
+    if(!setSerialPort()){
+        qDebug() << "SerialPort Open!!";
+        emit finished();
+    }
 
     while(true){
 
@@ -111,19 +115,24 @@ void SerialWorker::doWork()
 
         //READ DATA
 //        qDebug() << "_serial->bytesAvailable()" <<_serial->bytesAvailable();
-        if(_serial->bytesAvailable()) {
-            QByteArray newData = _serial->readAll();
-//            qDebug() << newData;
-            _serialReadData.append( newData );
-            if(_serialReadData.contains(CR)) {
-                emit serialReadData(_serialReadData.mid(0, _serialReadData.indexOf(CR) + 1));
-                _serialReadData = _serialReadData.mid(_serialReadData.indexOf(CR) + 1);
-            }
-        }
+//        if(_serial->bytesAvailable()) {
+//            QByteArray newData = _serial->readAll();
+////            qDebug() << newData;
+//            _serialReadData.append( newData );
 
-        QEventLoop loop;
-        QTimer::singleShot(1, &loop, SLOT(quit()));
-        loop.exec();
+//            if(_serialReadData.contains(CR)) {
+//                emit serialReadData(_serialReadData.mid(0, _serialReadData.indexOf(CR) + 1));
+//                _serialReadData = _serialReadData.mid(_serialReadData.indexOf(CR) + 1);
+//            }
+
+
+////            if(_serialReadData.contains(CR)) {
+////                emit serialReadData(_serialReadData.mid(0, _serialReadData.indexOf(CR) + 1));
+////                _serialReadData = _serialReadData.mid(_serialReadData.indexOf(CR) + 1);
+////            }
+//        }
+
+        QCoreApplication::processEvents();
 
         if(_portstatus == false)
             break;
@@ -133,13 +142,12 @@ void SerialWorker::doWork()
 
     if( _serial->isOpen())
         _serial->close();
-//    qDebug() <<"2. Serial is open? : " << _serial->isOpen();
 
     _mutex.lock();
     _working = false;
     _checkedList.clear();
     _mutex.unlock();
-
+    qDebug() << "End Serial";
     emit finished();
 }
 
@@ -165,9 +173,46 @@ void SerialWorker::disconnect()
 
 void SerialWorker::setPort(const QString &value)
 {
-    _mutex.lock();
-    _portname = value;
-    _mutex.unlock();
+//    qDebug() << "setPort:" <<  value;
+    QStringList splitPart;
+
+    splitPart = value.split(QLatin1Char(' '), Qt::SkipEmptyParts);
+
+    qDebug() <<"Port: " << splitPart.at(0);
+    qDebug() <<"baud: " << splitPart.at(1);
+    qDebug() <<"data: " << splitPart.at(2);
+    qDebug() <<"parity: " << splitPart.at(3);
+    qDebug() <<"stop: " << splitPart.at(4);
+    qDebug() <<"FlowControl: " << splitPart.at(5);
+
+    _portName = splitPart.at(0);
+
+    _baudRate = splitPart.at(1).toInt();
+
+    _dataBits = QSerialPort::Data8; //Databit는 8로 고정한다.
+
+    if("NoParity" == splitPart.at(3))
+        _parityBits = QSerialPort::NoParity;
+    else if("EvenParity" == splitPart.at(3))
+        _parityBits = QSerialPort::EvenParity;
+    else if("OddParity" == splitPart.at(3))
+        _parityBits = QSerialPort::OddParity;
+    else if("SpaceParity" == splitPart.at(3))
+        _parityBits = QSerialPort::SpaceParity;
+    else if("MarkParity" == splitPart.at(3))
+        _parityBits = QSerialPort::MarkParity;
+    else if("UnknownParity" == splitPart.at(3))
+        _parityBits = QSerialPort::UnknownParity;
+
+    if( splitPart.at(4) == "1")
+        _stopBits = QSerialPort::OneStop;
+    else if(splitPart.at(4) == "2")
+        _stopBits = QSerialPort::TwoStop;
+
+    if(splitPart.at(5) == "NoFlowControl")
+        _flowControl = QSerialPort::NoFlowControl;
+    else if(splitPart.at(5) == "HardwareControl")
+        _flowControl = QSerialPort::HardwareControl;
 }
 
 void SerialWorker::requestedWork()
@@ -180,20 +225,30 @@ void SerialWorker::requestedWork()
     emit workRequested();
 }
 
-void SerialWorker::setSerialPort(QString portName)
+bool SerialWorker::setSerialPort()
 {
     _serial = new QSerialPort;
-    _serial->setPortName(portName);
-    _serial->setBaudRate(QSerialPort::Baud115200);
-    _serial->setDataBits(QSerialPort::Data8);
-    _serial->setParity(QSerialPort::NoParity);
-    _serial->setStopBits(QSerialPort::OneStop);
+    _serial->setPortName(_portName);
+    qDebug()<< _baudRate;
+    _serial->setBaudRate(_baudRate);//int
+    _serial->setDataBits(_dataBits);//int
+    _serial->setParity(_parityBits);//int
+    _serial->setStopBits(_stopBits);//
+    _serial->setFlowControl(_flowControl);
+    _serial->setReadBufferSize(100000);
     _serial->open(QIODevice::ReadWrite);
-//    qDebug() << _serial->readBufferSize();
+    qDebug() << _serial->currentReadChannel();
 
+     connect(_serial, SIGNAL(readyRead()), this, SLOT(readData()));
     _portstatus = true;
 
-//    qDebug() << "1. Serial isOpen:" <<_serial->isOpen();
+    if(_serial->isOpen())
+    {
+        return true;
+    }
+
+    return false;
+
 }
 
 void SerialWorker::abort()
@@ -234,6 +289,20 @@ void SerialWorker::checkedListChanged(const CAN_ITEM &value)
                 _checkedList.append(value);
                 _mutex.unlock();
             }
+        }
+    }
+}
+
+void SerialWorker::readData()
+{
+    if(_serial->bytesAvailable()) {
+        QByteArray newData = _serial->readAll();
+//            qDebug() << newData;
+        _serialReadData.append( newData );
+
+        if(_serialReadData.contains(CR)) {
+            emit serialReadData(_serialReadData.mid(0, _serialReadData.indexOf(CR) + 1));
+            _serialReadData = _serialReadData.mid(_serialReadData.indexOf(CR) + 1);
         }
     }
 }

@@ -28,7 +28,9 @@ public:
     quint16 _uniquenumber;
     qint64 _lastSentTime;
     int _IDFormat;
-    QString _DataFormat;
+    int _DataFormat;
+
+    inline bool operator==(const CAN_ITEM& lhs) { return lhs._identifier == lhs._identifier; }
 
     enum FormatStatus {
         hexa = 0,
@@ -36,7 +38,6 @@ public:
         ASCII
     };
 };
-
 
 class CanMsgModel : public QAbstractTableModel
 {
@@ -89,6 +90,10 @@ public:
     void changeIDFormatHexadecimal(int index);
     void changeIDFormatDecimal(int index);
 
+    void changeDATAFormatHexadecimal(int index);
+    void changeDATAFormatDecimal(int index);
+    void changeDATAFormatASCII(int index);
+
 
     QString getcanId(int idx);
     int getdataLength(int idx);
@@ -96,6 +101,8 @@ public:
     QByteArray getmessageData(int idx);
     QString getcomment(int idx);
     int getFormat(int idx);
+    int getIdFormatStatus(int idx);
+    int getDataFormatStatus(int idx);
 
     bool processingReadData(const QString& value);
 
@@ -112,7 +119,7 @@ public:
 
 private:
     QList<CAN_ITEM> _list;
-    int _uniqueNumber = 0;//
+    int _uniqueNumber = 0;
 
     CAN_ITEM _buffer;
 
@@ -120,7 +127,6 @@ private:
     //processReadData
 
     QString _lastIn;
-
 
 };
 #endif // CANMSGMODEL_H

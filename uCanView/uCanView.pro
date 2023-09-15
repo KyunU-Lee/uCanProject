@@ -13,13 +13,7 @@ SOURCES += \
         totalmanager.cpp
 
 RESOURCES += qml.qrc \
-    icons/EditMessage.png \
-    icons/NewMessage.png \
-    icons/connect.png \
-    icons/disconnect.png \
     icons/openfile.png \
-    icons/statusbarconnect.png \
-    icons/statusbardisconnect.png
 
 # Additional import path used to resolve QML modules in Qt Creator's code model
 QML_IMPORT_PATH =
@@ -41,10 +35,5 @@ HEADERS += \
 DISTFILES += \
     ConnectDialog.qml \
     D2Coding.ttf \
-    icons/EditMessage.png \
-    icons/NewMessage.png \
-    icons/connect.png \
-    icons/disconnect.png \
     icons/openfile.png \
-    icons/statusbarconnect.png \
-    icons/statusbardisconnect.png
+    ucanviewmodel.qmodel

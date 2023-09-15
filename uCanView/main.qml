@@ -29,19 +29,10 @@ QQC1.ApplicationWindow
 
     property int transmitCurrentRow: transmitTable.currentRow
     property int reciveCurrentRow: reciveTable.currentRow
-    property bool idFormatTransmit: mytotalmanager.idformat > 0 ? true: false
-
     property bool clickTransmit: false
 
     function sendCan(index) {
             mytotalmanager.write(index)
-    }
-
-    QQC1.ExclusiveGroup {
-      id: idformat
-    }
-    QQC1.ExclusiveGroup {
-      id: dataformat
     }
 
     menuBar: QQC1.MenuBar {
@@ -78,7 +69,7 @@ QQC1.ApplicationWindow
             QQC1.MenuItem { text:"Connect"; shortcut: "Ctrl+B"; onTriggered: myconnectdialog.open() }
             QQC1.MenuItem { text:"Disconnect"; shortcut: "Ctrl+D"; onTriggered: {mytotalmanager.closePort();} }
             QQC1.MenuItem { text:"Reset"; shortcut: "Esc";  onTriggered: mytotalmanager.countReset()}
-        }
+       }
 
 //        EditTap{ id : edittap}
 
@@ -94,7 +85,7 @@ QQC1.ApplicationWindow
         QQC1.Menu{
             title:"Transmit"
             QQC1.MenuItem { text: "New Message..."; shortcut:"Ins"; onTriggered: mynewdialog.open()}
-            QQC1.MenuItem { text: "Edit Message..."; shortcut:"Enter"; enabled: transmitCurrentRow > 0; }
+            QQC1.MenuItem { text: "Edit Message..."; shortcut:"Enter"; enabled: transmitCurrentRow > 0;onTriggered:a  }
             QQC1.MenuItem { text: "Send"; shortcut:"Space"; onTriggered: transmitCurrentRow >= 0 ? sendCan(transmitCurrentRow) : ''}
         }
 
@@ -104,10 +95,59 @@ QQC1.ApplicationWindow
     toolBar: QQC1.ToolBar {
     //https://doc.qt.io/qt-5/qml-qtquick-controls-toolbar.html
         RowLayout{
-            anchors.fill: parent
+//            anchors.fill: parent
+            layoutDirection: Qt.LeftToRight
             QQC1.ToolButton{
                 iconSource: "icons/openfile.png"
                 onClicked: fileDialog.open()
+            }
+
+            QQC1.ToolButton {
+                iconSource: "icons/savefile.png"
+                onClicked: savefileDialog.open()
+            }
+
+            QQC2.ToolSeparator {}
+
+            QQC1.ToolButton{
+                iconSource: "icons/connect.png"
+                onClicked: myconnectdialog.open()
+            }
+
+            QQC1.ToolButton {
+                iconSource: "icons/disconnect.png"
+                onClicked: mytotalmanager.closePort()
+            }
+            QQC1.ToolButton {
+                iconSource: "icons/reset.png"
+                onClicked: mytotalmanager.countReset()
+            }
+            QQC1.ToolButton{
+                iconSource: "icons/newmsg.png"
+                onClicked: mynewdialog.open()
+            }
+
+            QQC1.ToolButton {
+                iconSource: "icons/editmsg.png"
+                onClicked: myeditdialog.open()
+            }
+
+            QQC2.ToolSeparator {}
+
+            QQC1.ToolButton {
+                iconSource: "icons/cut.png"
+                onClicked : clickTransmit ? mytotalmanager.transmitCut(transmitCurrentRow) :
+                                            mytotalmanager.reciveCut(reciveCurrentRow)
+            }
+            QQC1.ToolButton{
+                iconSource: "icons/copy.png"
+                onClicked:  clickTransmit ? mytotalmanager.transmitCopy(transmitCurrentRow) :
+                                            mytotalmanager.reciveCopy(reciveCurrentRow)
+            }
+
+            QQC1.ToolButton {
+                iconSource: "icons/paste.png"
+                onClicked: mytotalmanager.transmitPaste(transmitCurrentRow)
             }
         }
     }
@@ -261,27 +301,27 @@ QQC1.ApplicationWindow
                             contextMenu.popup()
                         }
                     }
-                    QQC1.Menu{
+                    QQC2.Menu{
                         id: contextMenu
-                        QQC1.MenuItem { text: "New Message..."; /*shortcut:"Ins";*/ onTriggered: mynewdialog.open()}
-                        QQC1.MenuItem { text: "Edit Message..."; /*shortcut:"Enter";*/ enabled: transmitCurrentRow > 0; }
-                        QQC1.MenuSeparator{}
-                        QQC1.MenuItem{ text:"Cut";/* shortcut:"Ctrl+X";*/ onTriggered : clickTransmit ? mytotalmanager.transmitCut(transmitCurrentRow) : mytotalmanager.reciveCut(reciveCurrentRow)  }
-                        QQC1.MenuItem{ text:"Copy"; /*shortcut:"Ctrl+C";*/ onTriggered :  clickTransmit ? mytotalmanager.transmitCopy(transmitCurrentRow) :mytotalmanager.reciveCopy(reciveCurrentRow)  }
-                        QQC1.MenuItem{ text:"Paste"; /*shortcut:"Ctrl+V";*/ onTriggered : mytotalmanager.transmitPaste(transmitCurrentRow) }
-                        QQC1.MenuItem{ text:"Delete"; /*shortcut:"Del";*/ onTriggered : clickTransmit ? mytotalmanager.transmitDelete(transmitCurrentRow) : mytotalmanager.reciveDelete(reciveCurrentRow) }
-                        QQC1.MenuItem{ text:"Clear All"; /*shortcut:"Shift+Esc";*/ onTriggered: mytotalmanager.transmitClear()}
-                        QQC1.MenuSeparator{}
-                        QQC1.Menu{
+                        QQC2.MenuItem { text: "New Message..."; /*shortcut:"Ins";*/ onTriggered: mynewdialog.open()}
+                        QQC2.MenuItem { text: "Edit Message..."; /*shortcut:"Enter";*/ enabled: transmitCurrentRow > 0; onTriggered: myeditdialog.open()}
+                        QQC2.MenuSeparator{}
+                        QQC2.MenuItem{ text:"Cut";/* shortcut:"Ctrl+X";*/enabled: transmitCurrentRow >= 0; onTriggered : clickTransmit ? mytotalmanager.transmitCut(transmitCurrentRow) : mytotalmanager.reciveCut(reciveCurrentRow)  }
+                        QQC2.MenuItem{ text:"Copy"; /*shortcut:"Ctrl+C";*/enabled: transmitCurrentRow >= 0; onTriggered :  clickTransmit ? mytotalmanager.transmitCopy(transmitCurrentRow) :mytotalmanager.reciveCopy(reciveCurrentRow)  }
+                        QQC2.MenuItem{ text:"Paste"; /*shortcut:"Ctrl+V";*/enabled: transmitCurrentRow >= 0; onTriggered : mytotalmanager.transmitPaste(transmitCurrentRow) }
+                        QQC2.MenuItem{ text:"Delete"; /*shortcut:"Del";*/enabled: transmitCurrentRow >= 0; onTriggered : clickTransmit ? mytotalmanager.transmitDelete(transmitCurrentRow) : mytotalmanager.reciveDelete(reciveCurrentRow) }
+                        QQC2.MenuItem{ text:"Clear All"; /*shortcut:"Shift+Esc";*/enabled: transmitCurrentRow >= 0; onTriggered: mytotalmanager.transmitClear()}
+                        QQC2.MenuSeparator{}
+                        QQC2.Menu{
                             title:"CAN ID Format"
-                            QQC1.MenuItem{ id:idformathex; onTriggered: {mytotalmanager.changeIDFormatHexadecimal(transmitCurrentRow ); console.log(mytotalmanager.idformat)} text:"Hexadeicmal"; checkable: true; checked: mytotalmanager.idformat === 0 ? true: false; exclusiveGroup: idformat }
-                            QQC1.MenuItem{ id:idformatdec; onTriggered: {mytotalmanager.changeIDFormatDecimal(transmitCurrentRow); console.log(mytotalmanager.idformat)} text:"Decimal"; checkable: true ; checked: false; exclusiveGroup: idformat }
+                            QQC2.MenuItem{ id:idformathex;enabled: transmitCurrentRow >= 0; onTriggered: {mytotalmanager.changeIDFormatHexadecimal(transmitCurrentRow ); } text:"Hexadeicmal"; checkable: true; checked: mytotalmanager.getidformat(transmitCurrentRow) === 0 ? true: false;}
+                            QQC2.MenuItem{ id:idformatdec;enabled: transmitCurrentRow >= 0; onTriggered: {mytotalmanager.changeIDFormatDecimal(transmitCurrentRow); } text:"Decimal"; checkable: true ; checked:mytotalmanager.getidformat(transmitCurrentRow) === 1 ? true: false; }
                         }
-                        QQC1.Menu{
+                        QQC2.Menu{
                             title:"Data Bytes Format"
-                            QQC1.MenuItem{ id:dataformathex; text:"Hexadeicmal"; checkable: true; checked: true; exclusiveGroup: dataformat }
-                            QQC1.MenuItem{ id:dataformatdec; text:"Decimal"; checkable: true; checked: false; exclusiveGroup: dataformat }
-                            QQC1.MenuItem{ id:dataformatASCII; text:"ASCII"; checkable: true;checked: false; exclusiveGroup: dataformat }
+                            QQC2.MenuItem{ id:dataformathex;enabled: transmitCurrentRow >= 0; onTriggered: mytotalmanager.changeDATAFormatHexadecimal(transmitCurrentRow); text:"Hexadeicmal"; checkable: true; checked: mytotalmanager.getDataFormat(transmitCurrentRow)  === 0 ? true: false;}
+                            QQC2.MenuItem{ id:dataformatdec;enabled: transmitCurrentRow >= 0; onTriggered: mytotalmanager.changeDATAFormatDecimal(transmitCurrentRow); text:"Decimal"; checkable: true; checked: mytotalmanager.getDataFormat(transmitCurrentRow)  === 1 ? true: false;}
+                            QQC2.MenuItem{ id:dataformatASCII;enabled: transmitCurrentRow >= 0; onTriggered: mytotalmanager.changeDATAFormatASCII(transmitCurrentRow); text:"ASCII"; checkable: true;checked: mytotalmanager.getDataFormat(transmitCurrentRow)  === 2 ? true: false;}
                         }
                     }
 
@@ -328,8 +368,6 @@ QQC1.ApplicationWindow
                             role:"identifier"
                             title:"CAN-ID"
                             width:100
-
-
                         }
 
                         QQC1.TableViewColumn{
@@ -347,12 +385,11 @@ QQC1.ApplicationWindow
                         QQC1.TableViewColumn{
                             role:"messagedata"
                             title:"Data"
-                            width:160
+                            width:250
                             delegate:
                                 Text {
                                 text: styleData.value
                                 elide: Text.ElideRight
-
                                 }
                         }
 

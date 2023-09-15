@@ -33,7 +33,7 @@ public:
     ~SerialWorker();
     bool getPortStatus(); //포트 상태 return (connect, disconnect)
     void requestedWork();
-    void setSerialPort(QString portName);
+    bool setSerialPort();
 
 
 public slots:
@@ -43,8 +43,7 @@ public slots:
     void setPort(const QString& value);
     void abort();
     void checkedListChanged(const CAN_ITEM& value);
-
-
+    void readData();
 
 signals:
     void finished();
@@ -59,7 +58,6 @@ private:
     QByteArray _writebuf;
     bool _abort;
     bool _working;
-    QString _portname = "COM5";
     bool _portstatus = false;
     bool _singleShotEvent = false;
     QList<CAN_ITEM> _checkedList;
@@ -68,9 +66,13 @@ private:
     QByteArray _serialReadData;
     bool unique = false;
 
+    QString _portName = "COM5";
+    qint32 _baudRate;
+    QSerialPort::DataBits _dataBits;
+    QSerialPort::Parity _parityBits;
+    QSerialPort::StopBits _stopBits;
+    QSerialPort::FlowControl _flowControl;
+
 
 };
-
-
-
 #endif // SERIALPORTLIST_H

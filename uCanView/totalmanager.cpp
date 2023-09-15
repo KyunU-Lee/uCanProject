@@ -31,6 +31,7 @@ TotalManager::TotalManager(QObject *parent) : QObject(parent)
     _threadStatus = false;
     _workerThread = new QThread();
     _serialWorker = new SerialWorker(_workerThread);
+    _serialWorker->moveToThread(_workerThread);
 
     connect(this, SIGNAL(checkModelChanged(CAN_ITEM)), _serialWorker, SLOT(checkedListChanged(CAN_ITEM))); //QList를 넘겨준다?
     connect(this, SIGNAL(transmitSingleShotSignal(CAN_ITEM)), _serialWorker, SLOT(setSingleShotItem(CAN_ITEM)));
@@ -64,6 +65,9 @@ void TotalManager::checkBoxChanged(const int& idx, const int& state)
 
 void TotalManager::openPort(QString portname)
 {
+//    qDebug() << portname<< baudrate<<Databits<<paritybits<<stopbits<<flowcontrol;
+
+//    qDebug() << portname;
     emit portNameChanged(portname);
     _threadStatus = true;
     emit serialPortStatusChanged();
